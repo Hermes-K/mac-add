@@ -658,7 +658,7 @@
     batchSampleBtn.addEventListener('click', () => {
       batchInput.value = [
         '00:00:0C:4A:2B:10 (Cisco)',
-        'F4:D4:88:51:7A:B0 (Apple)',
+        '00:17:F2:11:22:33 (Apple)',
         '3C:22:FB:A0:12:44 (Samsung)',
         '58-96-1D-00-11-22 (Intel)',
         'B8-27-EB-33-44-55 (Raspberry Pi)',

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="네트워크 및 보안 엔지니어를 위한 100% 클라이언트 오프라인 MAC 주소 OUI 제조사 조회 및 패킷 분석 도구">
+  <meta name="author" content="Antigravity">
+  <title>MAC 주소 제조사 조회 시스템 (OUI Analyzer)</title>
+  
+  <!-- Modern Clean Typography -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-wrap">
+        <div class="logo-icon">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>MAC Vendor & OUI Analyzer</h1>
+          <p>네트워크 &amp; 보안 실무 전용 하드웨어 제조사 분석기</p>
+        </div>
+      </div>
+
+      <div class="badge-status">
+        <span class="pulse-dot"></span>
+        <span id="dbCount">오프라인 OUI 데이터베이스 로드 중...</span>
+      </div>
+    </header>
+
+    <!-- Nav Tabs -->
+    <nav class="tabs-nav" aria-label="기능 탭">
+      <button class="tab-btn active" data-tab="single" id="tabBtnSingle">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        단일 주소 정밀 분석
+      </button>
+
+      <button class="tab-btn" data-tab="batch" id="tabBtnBatch">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+        </svg>
+        대량 일괄 분석 (Batch)
+      </button>
+
+      <button class="tab-btn" data-tab="directory" id="tabBtnDirectory">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+        제조사명 OUI 사전 검색
+      </button>
+    </nav>
+
+    <!-- TAB 1: Single Lookup -->
+    <main>
+      <section class="tab-panel active" id="tab-single">
+        <div class="glass-card">
+          <div class="search-wrapper">
+            <div class="search-input-group">
+              <span class="search-icon-left">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </span>
+
+              <input 
+                type="text" 
+                id="macInput" 
+                class="mac-main-input" 
+                placeholder="MAC 주소 또는 OUI 입력 (예: 00:0C:29, 3C-22-FB, f4d4.8851.7ab0, 00155D...)" 
+                value="F4:D4:88:51:7A:B0"
+                autocomplete="off" 
+                spellcheck="false"
+              />
+
+              <div class="input-actions">
+                <button class="action-icon-btn" id="clearInputBtn" title="지우기">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+                <button class="action-icon-btn" id="copyResultBtn" title="입력값 복사">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Samples -->
+            <div class="quick-samples">
+              <span>빠른 테스트:</span>
+              <span class="sample-chip" data-mac="F4:D4:88:51:7A:B0">Apple</span>
+              <span class="sample-chip" data-mac="3C:22:FB:4A:12:33">Samsung</span>
+              <span class="sample-chip" data-mac="00:00:0C:99:88:77">Cisco</span>
+              <span class="sample-chip" data-mac="58:96:1D:10:20:30">Intel</span>
+              <span class="sample-chip" data-mac="00:05:69:AA:BB:CC">VMware</span>
+              <span class="sample-chip" data-mac="00:15:5D:11:22:33">Microsoft Hyper-V</span>
+              <span class="sample-chip" data-mac="02:00:00:12:34:56">랜덤 MAC (U/L=1)</span>
+              <span class="sample-chip" data-mac="01:00:5E:00:00:01">멀티캐스트 (I/G=1)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Card Output Area -->
+        <div id="singleResultCard">
+          <!-- Dynamically filled by JS -->
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section">
+          <div class="history-header">
+            <span class="history-title">최근 조회 기록 (로컬 저장)</span>
+            <button class="clear-btn" id="clearHistoryBtn">기록 삭제</button>
+          </div>
+          <div class="history-list" id="historyList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: Batch Lookup -->
+      <section class="tab-panel" id="tab-batch">
+        <div class="glass-card">
+          <div class="batch-container">
+            <div>
+              <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">대량 MAC 주소 일괄 조회 &amp; CSV 내보내기</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                ARP 테이블, DHCP 리스 목록, 스위치 MAC-Table 텍스트를 그대로 붙여넣으세요. 공백, 줄바꿈, 쉼표, 콜론, 하이픈 등 다양한 포맷을 자동 추출합니다.
+              </p>
+              <textarea 
+                id="batchInput" 
+                class="batch-textarea" 
+                placeholder="줄바꿈으로 구분하여 여러 MAC 주소를 입력하세요&#10;예시:&#10;00:00:0C:4A:2B:10&#10;F4-D4-88-51-7A-B0&#10;3c22.fb12.44aa&#10;02:11:22:33:44:55"></textarea>
+            </div>
+
+            <div class="batch-actions-bar">
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button class="btn-primary" id="batchAnalyzeBtn">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  일괄 분석 실행
+                </button>
+                <button class="btn-secondary" id="batchSampleBtn">샘플 데이터 채우기</button>
+                <button class="btn-secondary" id="batchClearBtn">내용 비우기</button>
+              </div>
+
+              <button class="btn-secondary" id="batchExportBtn" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                CSV 엑셀 다운로드
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="batchResultsWrapper" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <div id="batchStats"></div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="mac-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>정규화 MAC (Standard)</th>
+                  <th>OUI</th>
+                  <th>제조사명 (Vendor / Organization)</th>
+                  <th>전송 유형</th>
+                  <th>주소 속성</th>
+                </tr>
+              </thead>
+              <tbody id="batchTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Search Vendor Directory -->
+      <section class="tab-panel" id="tab-directory">
+        <div class="glass-card">
+          <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">제조사 이름으로 OUI 접두사 검색</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            제조사명(예: Cisco, Apple, Samsung, Huawei, Intel)을 입력하여 할당된 모든 OUI(24-bit) 목록을 역방향 조회합니다.
+          </p>
+
+          <div class="search-input-group">
+            <span class="search-icon-left">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </span>
+            <input 
+              type="text" 
+              id="vendorSearchInput" 
+              class="mac-main-input" 
+              placeholder="제조사명 검색 (예: Apple, Cisco, Samsung, Sony, TP-LINK...)" 
+              autocomplete="off"
+            />
+          </div>
+
+          <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+            <span>검색 결과:</span>
+            <span id="vendorSearchCount" style="color: #38bdf8; font-weight: 600;">0건</span>
+          </div>
+
+          <div id="vendorSearchResultList" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; max-height: 500px; overflow-y: auto; padding-right: 0.5rem;">
+            <div class="empty-box">
+              <p>검색어를 입력하면 실시간으로 제조사 OUI 목록을 찾습니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="margin-top: 3.5rem; text-align: center; color: var(--text-muted); font-size: 0.78rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+      <p>100% 클라이언트 사이드 연산 · 외부 서버 전송 없음 (Zero Network Transmission) · IEEE OUI Database 내장</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <svg width="18" height="18" fill="none" stroke="#38bdf8" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span id="toastMessage">알림 메시지</span>
+  </div>
+
+  <!-- Scripts: 1st Load OUI DB into window.OUI_DATABASE, 2nd Load App Engine -->
+  <script src="./oui_data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
